@@ -1,0 +1,267 @@
+﻿
+CREATE DATABASE MusicaDB;
+GO
+
+USE MusicaDB;
+GO
+
+
+-- Tabla Escuelas
+CREATE TABLE Escuelas (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nombre NVARCHAR(100) NOT NULL,
+    Descripcion NVARCHAR(255),
+    Codigo NVARCHAR(20) UNIQUE NOT NULL
+);
+
+-- Tabla Profesores
+CREATE TABLE Profesores (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nombre NVARCHAR(100) NOT NULL,
+    Apellido NVARCHAR(100) NOT NULL,
+    NumeroIdentificacion NVARCHAR(50) UNIQUE NOT NULL,
+    EscuelaId INT NOT NULL,
+    FOREIGN KEY (EscuelaId) REFERENCES Escuelas(Id)
+);
+
+-- Tabla Alumnos
+CREATE TABLE Alumnos (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nombre NVARCHAR(100) NOT NULL,
+    Apellido NVARCHAR(100) NOT NULL,
+    FechaNacimiento DATE NOT NULL,
+    NumeroIdentificacion NVARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Tabla intermedia Profesor-Alumno
+CREATE TABLE ProfesorAlumno (
+    ProfesorId INT NOT NULL,
+    AlumnoId INT NOT NULL,
+    PRIMARY KEY (ProfesorId, AlumnoId),
+    FOREIGN KEY (ProfesorId) REFERENCES Profesores(Id),
+    FOREIGN KEY (AlumnoId) REFERENCES Alumnos(Id)
+);
+
+-- Tabla intermedia Alumno-Escuela
+CREATE TABLE AlumnoEscuela (
+    AlumnoId INT NOT NULL,
+    EscuelaId INT NOT NULL,
+    PRIMARY KEY (AlumnoId, EscuelaId),
+    FOREIGN KEY (AlumnoId) REFERENCES Alumnos(Id),
+    FOREIGN KEY (EscuelaId) REFERENCES Escuelas(Id)
+);
+
+GO
+
+-- Crear Escuela
+CREATE PROCEDURE CrearEscuela
+    @Nombre NVARCHAR(100),
+    @Descripcion NVARCHAR(255),
+    @Codigo NVARCHAR(20)
+AS
+BEGIN
+    INSERT INTO Escuelas (Nombre, Descripcion, Codigo)
+    VALUES (@Nombre, @Descripcion, @Codigo);
+END
+GO
+-- Actualizar Escuela
+CREATE PROCEDURE ActualizarEscuela
+    @Id INT,
+    @Nombre NVARCHAR(100),
+    @Descripcion NVARCHAR(255),
+    @Codigo NVARCHAR(20)
+AS
+BEGIN
+    UPDATE Escuelas
+    SET Nombre = @Nombre,
+        Descripcion = @Descripcion,
+        Codigo = @Codigo
+    WHERE Id = @Id;
+END
+GO
+-- Eliminar Escuela
+CREATE PROCEDURE EliminarEscuela
+    @Id INT
+AS
+BEGIN
+    DELETE FROM Escuelas
+    WHERE Id = @Id;
+END
+GO
+-- Obtener Escuelas
+CREATE PROCEDURE ObtenerEscuelas
+AS
+BEGIN
+    SELECT * FROM Escuelas;
+END
+
+GO
+-- Crear Profesor
+CREATE PROCEDURE CrearProfesor
+    @Nombre NVARCHAR(100),
+    @Apellido NVARCHAR(100),
+    @NumeroIdentificacion NVARCHAR(50),
+    @EscuelaId INT
+AS
+BEGIN
+    INSERT INTO Profesores (Nombre, Apellido, NumeroIdentificacion, EscuelaId)
+    VALUES (@Nombre, @Apellido, @NumeroIdentificacion, @EscuelaId);
+END
+GO
+-- Actualizar Profesor
+CREATE PROCEDURE ActualizarProfesor
+    @Id INT,
+    @Nombre NVARCHAR(100),
+    @Apellido NVARCHAR(100),
+    @NumeroIdentificacion NVARCHAR(50),
+    @EscuelaId INT
+AS
+BEGIN
+    UPDATE Profesores
+    SET Nombre = @Nombre,
+        Apellido = @Apellido,
+        NumeroIdentificacion = @NumeroIdentificacion,
+        EscuelaId = @EscuelaId
+    WHERE Id = @Id;
+END
+GO
+-- Eliminar Profesor
+CREATE PROCEDURE EliminarProfesor
+    @Id INT
+AS
+BEGIN
+    DELETE FROM Profesores
+    WHERE Id = @Id;
+END
+GO
+-- Obtener Profesores
+CREATE PROCEDURE ObtenerProfesores
+AS
+BEGIN
+    SELECT * FROM Profesores;
+END
+
+GO
+-- Crear Alumno
+CREATE PROCEDURE CrearAlumno
+    @Nombre NVARCHAR(100),
+    @Apellido NVARCHAR(100),
+    @FechaNacimiento DATE,
+    @NumeroIdentificacion NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO Alumnos (Nombre, Apellido, FechaNacimiento, NumeroIdentificacion)
+    VALUES (@Nombre, @Apellido, @FechaNacimiento, @NumeroIdentificacion);
+END
+GO
+-- Actualizar Alumno
+CREATE PROCEDURE ActualizarAlumno
+    @Id INT,
+    @Nombre NVARCHAR(100),
+    @Apellido NVARCHAR(100),
+    @FechaNacimiento DATE,
+    @NumeroIdentificacion NVARCHAR(50)
+AS
+BEGIN
+    UPDATE Alumnos
+    SET Nombre = @Nombre,
+        Apellido = @Apellido,
+        FechaNacimiento = @FechaNacimiento,
+        NumeroIdentificacion = @NumeroIdentificacion
+    WHERE Id = @Id;
+END
+GO
+-- Eliminar Alumno
+CREATE PROCEDURE EliminarAlumno
+    @Id INT
+AS
+BEGIN
+    DELETE FROM Alumnos
+    WHERE Id = @Id;
+END
+GO
+-- Obtener Alumnos
+CREATE PROCEDURE ObtenerAlumnos
+AS
+BEGIN
+    SELECT * FROM Alumnos;
+END
+
+GO
+
+-- Asignar Alumno a Profesor
+CREATE PROCEDURE AsignarAlumnoAProfesor
+    @ProfesorId INT,
+    @AlumnoId INT
+AS
+BEGIN
+    INSERT INTO ProfesorAlumno (ProfesorId, AlumnoId)
+    VALUES (@ProfesorId, @AlumnoId);
+END
+GO
+-- Inscribir Alumno a Escuela
+CREATE PROCEDURE InscribirAlumnoAEscuela
+    @AlumnoId INT,
+    @EscuelaId INT
+AS
+BEGIN
+    INSERT INTO AlumnoEscuela (AlumnoId, EscuelaId)
+    VALUES (@AlumnoId, @EscuelaId);
+END
+GO
+CREATE PROCEDURE ConsultaAlumnosPorProfesor
+    @ProfesorId INT
+AS
+BEGIN
+    SELECT
+        P.Nombre + ' ' + P.Apellido AS Profesor,
+        E.Nombre AS Escuela,
+        A.Nombre + ' ' + A.Apellido AS Alumno
+    FROM ProfesorAlumno PA
+    INNER JOIN Profesores P ON P.Id = PA.ProfesorId
+    INNER JOIN Escuelas E ON E.Id = P.EscuelaId
+    INNER JOIN Alumnos A ON A.Id = PA.AlumnoId
+    WHERE P.Id = @ProfesorId;
+END
+GO
+CREATE PROCEDURE ConsultaEscuelasYAlumnosPorProfesor
+    @ProfesorId INT
+AS
+BEGIN
+    SELECT
+        E.Nombre AS Escuela,
+        A.Nombre + ' ' + A.Apellido AS Alumno
+    FROM Profesores P
+    INNER JOIN Escuelas E ON E.Id = P.EscuelaId
+    INNER JOIN ProfesorAlumno PA ON PA.ProfesorId = P.Id
+    INNER JOIN Alumnos A ON A.Id = PA.AlumnoId
+    WHERE P.Id = @ProfesorId;
+END
+GO
+ALTER PROCEDURE CrearProfesor
+    @Nombre NVARCHAR(100),
+    @Apellido NVARCHAR(100),
+    @NumeroIdentificacion NVARCHAR(50),
+    @EscuelaId INT
+AS
+BEGIN
+    INSERT INTO Profesores (Nombre, Apellido, NumeroIdentificacion, EscuelaId)
+    VALUES (@Nombre, @Apellido, @NumeroIdentificacion, @EscuelaId);
+
+    SELECT SCOPE_IDENTITY() AS Id;
+END
+
+
+CREATE PROCEDURE ObtenerAlumnoEscuela
+AS
+BEGIN
+    SELECT * FROM AlumnoEscuela;
+END
+GO
+CREATE PROCEDURE ObtenerProfesorAlumno
+AS
+BEGIN
+    SELECT * FROM ProfesorAlumno;
+END
+
+

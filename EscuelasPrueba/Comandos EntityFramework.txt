@@ -1,0 +1,18 @@
+﻿
+---------------------------------------------------Mapeo base de datos haciendo  first database
+
+Scaffold-DbContext "Server=localhost\SQLEXPRESS;Database=MusicaDB;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models
+
+---------------------------------------------------Mapeo de  ciertas tablas
+
+Scaffold-DbContext "Server=localhost\SQLEXPRESS;Database=MusicaDB;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Core/Domains/Entities -Tables tabla1,tabla2 -ContextDir Core/Application/Data -Context MusicaDbContext -Force
+
+
+---------------------------------------------------realizar migraciones haciendo code first al agregar o quitar parametros de los modelos
+Add-Migration 'nombre migracion'
+
+---------------------------------------------------aplicar migraciones impactando a la base de datos
+update-database
+
+---------------------------------------------------eliminar nigracion en dado caso de algun error, antes de hacer update-database
+remove-migration
